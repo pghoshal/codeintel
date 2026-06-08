@@ -1,0 +1,119 @@
+[package]
+name = "codeintel-indexer-rs"
+version = "0.1.0"
+edition = "2021"
+description = "codeintel indexer — clone + Zoekt + SCIP worker"
+publish = false
+
+# Standalone binary for now. When R.2 lands the queue consumer
+# we'll split into lib + bin so integration tests can import the
+# library without spawning a subprocess.
+[[bin]]
+name = "codeintel-indexer-rs"
+path = "src/main.rs"
+
+[dependencies]
+# Subcommand parsing. derive feature for `#[derive(Parser)]`.
+clap = { version = "4", features = ["derive", "env"] }
+
+# git2 wraps libgit2. Used for the clone path so we get
+# byte-equal parity with vanilla `git clone` (legacy
+# packages/backend/src/repoIndexManager.ts shells out to system
+# git; git2 calls into the same upstream libgit2 the system
+# binary uses, so the clone output is byte-equal).
+git2 = "0.20"
+
+# Error plumbing.
+anyhow = "1"
+# Typed error variants — used by delta_plan to surface scope
+# mismatches as a sentinel the worker can decide to fail-fast
+# on vs. log+skip.
+thiserror = "1"
+
+# asynq — Rust client wire-compatible with hibiken/asynq (Go).
+# The Go codeintel-backend already uses asynq; the Rust indexer
+# joins the SAME Redis-backed queues as a consumer, no
+# translation layer. JSON feature carries the per-task
+# payload format we already share with the Go pkg/repoindex
+# wire types.
+asynq = { version = "0.1", features = ["json"] }
+
+# tokio runtime required by the asynq async surface.
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "time"] }
+
+# gRPC client for typed Rust-indexer -> Go-backend handoffs.
+tonic = { version = "0.12", features = ["transport"] }
+prost = "0.13"
+
+# async_trait for the asynq Handler trait impl.
+async-trait = "0.1"
+
+# JSON encode/decode for the per-task payload bytes (Go-side
+# pkg/repoindex.TaskPayload).
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# SCIP protobuf decode. The crate is generated from the upstream
+# SCIP schema and keeps parser behavior aligned with current
+# language indexers.
+scip = "0.7.1"
+protobuf = "=3.7.2"
+
+# Postgres client for the INDEX handler — Rust writes
+# Repo.indexedCommitHash + RepoIndexingJob.status directly.
+# The legacy/Go side owns the schema; this is a narrow set of
+# UPDATEs, not a full ORM port.
+tokio-postgres = { version = "0.7", features = ["with-serde_json-1", "with-chrono-0_4"] }
+
+# Glob matching for metadata.branches / metadata.tags patterns.
+# Substitutes the legacy micromatch with the standard Rust
+# globset crate (equivalent {*, ?, [abc], **} syntax).
+globset = "0.4"
+
+# UUIDs as opaque primary keys for RepoIndexManifest /
+# RepoIndexManifestFile rows. Substitutes the legacy Prisma
+# `cuid()` defaults — IDs are opaque strings, not byte-compared
+# in any parity test, so a v4 UUID is functionally identical.
+uuid = { version = "1", features = ["v4"] }
+
+# Chrono for timestamp coercion when reading TIMESTAMP(3) cols.
+chrono = { version = "0.4", default-features = false, features = ["serde", "clock"] }
+
+# Regex engine for the codeGraph syntactic AST extractor port
+# (legacy uses JS RegExp; the `regex` crate covers the same
+# patterns minus lookbehind, which the legacy patterns don't
+# use). Anchored DFA matching keeps the per-file extractor
+# bounded even on hostile inputs.
+regex = "1"
+
+# Parser-grade AST extraction for TypeScript/TSX and
+# JavaScript/JSX graph facts. SCIP provides symbol precision;
+# tree-sitter gives deterministic structural facts for graph
+# traversal without running an LLM during indexing.
+tree-sitter = "0.25.8"
+tree-sitter-typescript = "0.23.2"
+tree-sitter-javascript = "0.25.0"
+
+# SHA-256 for the deterministic edge-rank hash. Matches the
+# legacy `createHash("sha256").update(input).digest("hex")
+# .slice(0, 8)` formula in codeGraph/nebulaNgql.ts:106.
+sha2 = "0.10"
+
+[dev-dependencies]
+# Q.C: temporary filesystem fixtures for the worktree-pruner
+# tests. Limited to the test surface; the production indexer
+# uses its own data_cache_dir layout.
+tempfile = "3"
+
+[build-dependencies]
+protoc-bin-vendored = "3"
+tonic-build = "0.12"
+
+[profile.release]
+opt-level = "z"   # size-optimised binary; the indexer host runs
+                  # many of these in containers, prefer small.
+lto = true
+strip = true
+
+[profile.dev]
+debug = 1         # smaller debug info but still useful traces.

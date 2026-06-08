@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>codeintel admin console</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10.9.3/dist/mermaid.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.min.js"></script>
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>codeintel admin console</h1>
+        <p>Human verification UI for Atom-controlled tenants, indexing, chat, and MCP.</p>
+      </div>
+      <div class="connection-pill" id="connectionPill">Not connected</div>
+    </header>
+
+    <main class="shell">
+      <aside class="sidebar">
+        <button class="nav active" data-view="overview">Overview</button>
+        <button class="nav" data-view="workspace">Workspace</button>
+        <button class="nav" data-view="llm">LLM</button>
+        <button class="nav" data-view="vcs">VCS</button>
+        <button class="nav" data-view="repos">Repos</button>
+        <button class="nav" data-view="chat">Chat</button>
+        <button class="nav" data-view="mcp">MCP Lab</button>
+      </aside>
+
+      <section class="view active" id="view-overview">
+        <div class="section-head">
+          <div>
+            <h2>Operations Overview</h2>
+            <p class="section-copy">Tenant health, indexed coverage, configured models, and recent admin actions.</p>
+          </div>
+          <button id="refreshAll">Refresh All</button>
+        </div>
+        <div class="kpi-grid" id="overviewKpis"></div>
+        <div class="grid two">
+          <div class="panel">
+            <h3>Workspace State</h3>
+            <div id="workspaceSummary" class="summary"></div>
+          </div>
+          <div class="panel">
+            <h3>Activity</h3>
+            <div id="activityLog" class="activity-log"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-workspace">
+        <div class="section-head">
+          <h2>Workspace</h2>
+          <button id="saveRuntime">Save Runtime</button>
+        </div>
+        <div class="grid two">
+          <form class="panel" id="runtimeForm">
+            <h3>Runtime</h3>
+            <label>API base <input id="apiBase" placeholder="leave empty when using the proxy"></label>
+            <label>Atom control token <input id="atomToken" type="password" autocomplete="off"></label>
+            <label>Workspace API key <input id="apiKey" type="password" autocomplete="off"></label>
+            <label>Workspace domain <input id="domain" placeholder="example-domain"></label>
+          </form>
+          <form class="panel" id="workspaceForm">
+            <h3>Create or Load Workspace</h3>
+            <label>Workspace ID <input id="workspaceId" placeholder="atom-workspace-id"></label>
+            <label>Workspace name <input id="workspaceName" placeholder="Atom Workspace Name"></label>
+            <label>Domain <input id="workspaceDomain" placeholder="tenant-domain"></label>
+            <label class="check"><input id="createApiKey" type="checkbox" checked> Create workspace API key</label>
+            <button type="submit">Provision Workspace</button>
+          </form>
+        </div>
+        <pre class="log" id="workspaceLog"></pre>
+      </section>
+
+      <section class="view" id="view-llm">
+        <div class="section-head">
+          <div>
+            <h2>Workspace LLM</h2>
+            <p class="section-copy">Secrets stay workspace-scoped; model config stores only secret references.</p>
+          </div>
+          <button id="refreshLlm">Refresh</button>
+        </div>
+        <div class="grid two">
+          <form class="panel" id="secretForm">
+            <h3>Secret Vault</h3>
+            <label>Secret key <input id="secretKey" placeholder="glm.primary"></label>
+            <label>Secret value <input id="secretValue" type="password" autocomplete="off" placeholder="provider token"></label>
+            <button type="submit">Save Secret</button>
+            <div id="secretList" class="list"></div>
+          </form>
+          <form class="panel" id="modelForm">
+            <h3>Language Model</h3>
+            <label>Provider <input id="modelProvider" value="openai-compatible"></label>
+            <label>Model <input id="modelName" placeholder="glm-4.6"></label>
+            <label>Display name <input id="modelDisplayName" placeholder="GLM 4.6"></label>
+            <label>Base URL <input id="modelBaseUrl" placeholder="https://api.z.ai/api/coding/paas/v4"></label>
+            <label>Token secretRef <input id="modelSecretRef" placeholder="glm.primary"></label>
+            <button type="submit">Save / Upsert Model</button>
+            <div id="modelList" class="list"></div>
+          </form>
+        </div>
+        <pre class="log" id="llmLog"></pre>
+      </section>
+
+      <section class="view" id="view-vcs">
+        <div class="section-head">
+          <h2>VCS Connections</h2>
+          <button id="refreshConnections">Refresh</button>
+        </div>
+        <div class="provider-grid">
+          <div class="provider-card" data-provider="github">
+            <strong>GitHub App</strong>
+            <span>Atom OAuth token broker reference</span>
+            <label>Atom connection id <input data-role="atom-vcs-id" placeholder="atom github connection id"></label>
+            <label>GitHub host <input data-role="atom-vcs-url" value="https://github.com"></label>
+            <label>Repos <input data-role="atom-vcs-repos" placeholder="owner/repo, owner/repo2"></label>
+            <label>Orgs/users <input data-role="atom-vcs-groups" placeholder="org-a, user-b"></label>
+            <label>Branches <input data-role="atom-vcs-branches" placeholder="main, release/* or *"></label>
+            <button data-action="save-atom-provider" data-provider="github">Save Atom GitHub Connection</button>
+          </div>
+          <div class="provider-card" data-provider="gitlab">
+            <strong>GitLab App</strong>
+            <span>Atom OAuth token broker reference</span>
+            <label>Atom connection id <input data-role="atom-vcs-id" placeholder="atom gitlab connection id"></label>
+            <label>GitLab host <input data-role="atom-vcs-url" value="https://gitlab.com"></label>
+            <label>Projects <input data-role="atom-vcs-repos" placeholder="group/project, group/sub/project"></label>
+            <label>Groups/users <input data-role="atom-vcs-groups" placeholder="group-a, user-b"></label>
+            <label>Branches <input data-role="atom-vcs-branches" placeholder="main, release/* or *"></label>
+            <button data-action="save-atom-provider" data-provider="gitlab">Save Atom GitLab Connection</button>
+          </div>
+          <div class="provider-card" data-provider="bitbucket">
+            <strong>Bitbucket App</strong>
+            <span>Atom OAuth token broker reference</span>
+            <label>Atom connection id <input data-role="atom-vcs-id" placeholder="atom bitbucket connection id"></label>
+            <label>Bitbucket host <input data-role="atom-vcs-url" value="https://bitbucket.org"></label>
+            <label>Repos <input data-role="atom-vcs-repos" placeholder="workspace/repo, project/repo"></label>
+            <label>Workspaces/projects <input data-role="atom-vcs-groups" placeholder="workspace-a, project-b"></label>
+            <label>Branches <input data-role="atom-vcs-branches" placeholder="main, release/* or *"></label>
+            <button data-action="save-atom-provider" data-provider="bitbucket">Save Atom Bitbucket Connection</button>
+          </div>
+        </div>
+        <div class="grid two">
+          <form class="panel" id="connectionForm">
+            <h3>Generic Git Connection</h3>
+            <label>Name <input id="connectionName" placeholder="workspace-main-git"></label>
+            <label>Git URL <input id="connectionUrl" placeholder="http://git/repo.git"></label>
+            <label>Branches <input id="connectionBranches" placeholder="main, release/* or *"></label>
+            <label class="check"><input id="connectionSync" type="checkbox"> Sync after save</label>
+            <button type="submit">Save Connection</button>
+          </form>
+          <div class="panel">
+            <h3>Connections</h3>
+            <div id="connectionList" class="list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-repos">
+        <div class="section-head">
+          <h2>Repos and Branch Indexing</h2>
+          <button id="refreshRepos">Refresh</button>
+        </div>
+        <div class="repo-toolbar">
+          <label>Search <input id="repoQuery" placeholder="repo name filter"></label>
+          <label>Per page
+            <select id="repoPerPage">
+              <option>10</option>
+              <option selected>30</option>
+              <option>50</option>
+              <option>100</option>
+            </select>
+          </label>
+          <label>Sort
+            <select id="repoSort">
+              <option value="name">Name</option>
+              <option value="pushed">Pushed</option>
+            </select>
+          </label>
+          <label>Direction
+            <select id="repoDirection">
+              <option value="asc">Asc</option>
+              <option value="desc">Desc</option>
+            </select>
+          </label>
+          <button id="repoPrevPage">Prev</button>
+          <button id="repoNextPage">Next</button>
+          <div class="repo-page-meta" id="repoPageMeta"></div>
+        </div>
+        <div class="grid two wide-right">
+          <div>
+            <div id="repoList" class="repo-list"></div>
+          </div>
+          <div class="panel">
+            <h3>Search Context</h3>
+            <label>Name <input id="contextName" value="admin-selected"></label>
+            <label>Description <input id="contextDescription" value="Repos selected in the admin verification console"></label>
+            <button id="saveSearchContext">Save Selected Repo Context</button>
+            <div id="contextList" class="list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view chat-view" id="view-chat">
+        <div class="chat-left">
+          <div class="section-head">
+            <div>
+              <h2>Coding Chat</h2>
+              <p class="section-copy">Zoekt + SCIP + AST/tree-sitter + graph evidence, scoped to selected repos or contexts.</p>
+            </div>
+          </div>
+          <div class="chat-commandbar">
+            <label>Model
+              <select id="chatConfiguredModel"></select>
+            </label>
+            <label>Context
+              <select id="chatSearchContext"></select>
+            </label>
+            <label>Budget
+              <select id="answerBudget">
+                <option value="full">Full</option>
+                <option value="standard">Standard</option>
+                <option value="compact">Compact</option>
+                <option value="brief">Brief</option>
+              </select>
+            </label>
+            <button id="refreshChatState">Refresh</button>
+            <button id="loadTestArtifact">Load Artifact</button>
+            <button id="newChat">New</button>
+          </div>
+          <details class="chat-advanced">
+            <summary>Runtime and manual model override</summary>
+            <div class="chat-config">
+              <label>Model provider <input id="chatProvider" value="openai-compatible"></label>
+              <label>Model <input id="chatModel" placeholder="glm-4.6"></label>
+              <label>Chat id <input id="chatIdDisplay" readonly placeholder="new conversation"></label>
+            </div>
+          </details>
+          <div class="repo-scope" id="chatRepoScope"></div>
+          <div class="evidence-strip" id="chatEvidenceStrip"></div>
+          <div class="messages" id="messages"></div>
+          <form class="composer" id="chatForm">
+            <textarea id="chatInput" rows="5" placeholder="Ask a coding-harness question across the selected repos..."></textarea>
+            <button type="submit">Send</button>
+          </form>
+        </div>
+        <div class="code-right">
+          <div class="section-head">
+            <h2>Code</h2>
+            <button id="clearCode">Clear</button>
+          </div>
+          <div class="code-meta" id="codeMeta">Click a file reference in chat or MCP output.</div>
+          <div class="code-toolbar" id="codeToolbar"></div>
+          <div class="code-view" id="codeView" role="code"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-mcp">
+        <div class="section-head">
+          <h2>MCP Testing Layer</h2>
+          <button id="sendMcp">Send</button>
+        </div>
+        <div class="grid two">
+          <div class="panel">
+            <label>Tool
+              <select id="mcpTool">
+                <option>list_repos</option>
+                <option>grep</option>
+                <option>read_file</option>
+                <option>codegraph_context</option>
+                <option>find_symbol_definitions</option>
+                <option>find_symbol_references</option>
+                <option>compare_branches</option>
+                <option>graph_status</option>
+              </select>
+            </label>
+            <label>Arguments JSON <textarea id="mcpArgs" rows="18">{}</textarea></label>
+          </div>
+          <div class="panel">
+            <h3>Request / Response</h3>
+            <pre class="log" id="mcpLog"></pre>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="panel">
+            <h3>Direct Search API</h3>
+            <label>Query <input id="searchQuery" placeholder="symbol, function, route, or error text"></label>
+            <label>Branch/ref <input id="searchRef" placeholder="main or refs/heads/main"></label>
+            <button id="sendSearch">Search Selected Repos</button>
+          </div>
+          <div class="panel">
+            <h3>Search Response</h3>
+            <pre class="log" id="searchLog"></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

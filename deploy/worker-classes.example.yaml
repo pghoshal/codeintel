@@ -1,0 +1,156 @@
+# Hybrid executor class defaults. This file is intentionally
+# declarative so Helm/Kustomize can render Deployments,
+# ScaledObjects, or ScaledJobs without hardcoding language runtime
+# policy into application code.
+#
+# Queue names and SCIP worker class names mirror
+# codeintel/internal/backend/workerclasses.
+
+workerClasses:
+  - name: core
+    mode: core
+    image: codeintel-indexer-rs-core
+    queueName: codeintel-index-core
+    nodePool: index-core
+    podConcurrency: 2
+    maxPods: 100
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+    env:
+      CODEINTEL_SCIP_WORKER_CLASSES: none
+
+  - name: scip-ts-python
+    mode: hot-pool
+    image: codeintel-scip-ts-python
+    queueName: codeintel-index-scip-ts-python
+    nodePool: index-light
+    scipWorkerClasses: ["ts-js", "python"]
+    scipIndexers: ["typescript", "python"]
+    podConcurrency: 4
+    maxPods: 300
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "4"
+        memory: 6Gi
+
+  - name: scip-go
+    mode: hot-pool
+    image: codeintel-scip-go
+    queueName: codeintel-index-scip-go
+    nodePool: index-light
+    scipWorkerClasses: ["go"]
+    scipIndexers: ["go"]
+    podConcurrency: 4
+    maxPods: 200
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "4"
+        memory: 6Gi
+
+  - name: scip-jvm
+    mode: cold-job
+    image: codeintel-scip-jvm
+    queueName: codeintel-index-scip-jvm
+    nodePool: index-heavy
+    scipWorkerClasses: ["jvm"]
+    scipIndexers: ["java"]
+    podConcurrency: 1
+    maxPods: 100
+    activeDeadlineSeconds: 7200
+    ttlSecondsAfterFinished: 600
+    resources:
+      requests:
+        cpu: "1"
+        memory: 4Gi
+      limits:
+        cpu: "6"
+        memory: 16Gi
+
+  - name: scip-dotnet
+    mode: cold-job
+    image: codeintel-scip-dotnet
+    queueName: codeintel-index-scip-dotnet
+    nodePool: index-heavy
+    scipWorkerClasses: ["dotnet"]
+    scipIndexers: ["dotnet"]
+    podConcurrency: 1
+    maxPods: 100
+    activeDeadlineSeconds: 7200
+    ttlSecondsAfterFinished: 600
+    resources:
+      requests:
+        cpu: "1"
+        memory: 4Gi
+      limits:
+        cpu: "6"
+        memory: 16Gi
+
+  - name: scip-rust-dart
+    mode: cold-job
+    image: codeintel-scip-rust-dart
+    queueName: codeintel-index-scip-rust-dart
+    nodePool: index-heavy
+    scipWorkerClasses: ["rust-dart"]
+    scipIndexers: ["rust", "dart"]
+    podConcurrency: 1
+    maxPods: 100
+    activeDeadlineSeconds: 7200
+    ttlSecondsAfterFinished: 600
+    resources:
+      requests:
+        cpu: "1"
+        memory: 4Gi
+      limits:
+        cpu: "6"
+        memory: 16Gi
+
+  - name: scip-cpp-x86
+    mode: cold-job
+    image: codeintel-scip-cpp
+    queueName: codeintel-index-scip-cpp-x86
+    nodePool: index-native-x86
+    architecture: amd64
+    scipWorkerClasses: ["cpp"]
+    scipIndexers: ["clang"]
+    podConcurrency: 1
+    maxPods: 50
+    activeDeadlineSeconds: 7200
+    ttlSecondsAfterFinished: 600
+    resources:
+      requests:
+        cpu: "2"
+        memory: 6Gi
+      limits:
+        cpu: "8"
+        memory: 24Gi
+
+  - name: scip-ruby-x86
+    mode: cold-job
+    image: codeintel-scip-ruby
+    queueName: codeintel-index-scip-ruby-x86
+    nodePool: index-native-x86
+    architecture: amd64
+    scipWorkerClasses: ["ruby"]
+    scipIndexers: ["ruby"]
+    podConcurrency: 1
+    maxPods: 50
+    activeDeadlineSeconds: 7200
+    ttlSecondsAfterFinished: 600
+    resources:
+      requests:
+        cpu: "1"
+        memory: 2Gi
+      limits:
+        cpu: "4"
+        memory: 8Gi

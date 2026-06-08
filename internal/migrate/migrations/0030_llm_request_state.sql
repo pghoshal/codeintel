@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS "LLMRequest" (
+  id TEXT PRIMARY KEY,
+  "orgId" INTEGER NOT NULL REFERENCES "Org"(id) ON DELETE CASCADE,
+  status TEXT NOT NULL CHECK (status IN ('IN_PROGRESS', 'SUCCEEDED', 'FAILED')),
+  provider TEXT NOT NULL,
+  model TEXT NOT NULL,
+  request JSONB NOT NULL,
+  response JSONB,
+  error TEXT,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "completedAt" TIMESTAMP(3)
+);
+
+CREATE INDEX IF NOT EXISTS "LLMRequest_org_status_updated_idx"
+  ON "LLMRequest" ("orgId", status, "updatedAt" DESC);

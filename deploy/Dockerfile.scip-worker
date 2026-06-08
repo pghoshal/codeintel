@@ -1,0 +1,33 @@
+# syntax=docker/dockerfile:1
+
+FROM rust:1.92-alpine AS rustbuilder
+RUN apk add --no-cache build-base ca-certificates cmake git openssl-dev openssl-libs-static pkgconf
+
+WORKDIR /src/codeintel/indexer-rs
+COPY indexer-rs/Cargo.toml indexer-rs/Cargo.lock ./
+COPY indexer-rs/build.rs ./build.rs
+COPY indexer-rs/src ./src
+COPY proto ../proto
+RUN cargo build --release --locked --bin codeintel-indexer-rs
+
+FROM alpine:3.20
+USER root
+
+ARG SCIP_INDEXERS
+ARG CODEINTEL_SCIP_WORKER_CLASSES
+ARG SCIP_BEST_EFFORT=false
+
+ENV CODEINTEL_SCIP_WORKER_CLASSES="${CODEINTEL_SCIP_WORKER_CLASSES}"
+ENV PATH="/usr/local/bin:/root/.dotnet/tools:/root/.pub-cache/bin:/opt/dart-sdk/bin:${PATH}"
+
+RUN apk add --no-cache bash ca-certificates curl git jq openssh-client openssl perl util-linux wget
+
+COPY scripts/install-scip-indexers-alpine.sh .
+RUN test -n "$SCIP_INDEXERS" \
+    && test -n "$CODEINTEL_SCIP_WORKER_CLASSES" \
+    && SCIP_INDEXERS="$SCIP_INDEXERS" SCIP_BEST_EFFORT="$SCIP_BEST_EFFORT" sh ./install-scip-indexers-alpine.sh \
+    && rm install-scip-indexers-alpine.sh
+
+COPY --from=rustbuilder /src/codeintel/indexer-rs/target/release/codeintel-indexer-rs /usr/local/bin/codeintel-indexer-rs
+
+ENTRYPOINT ["/usr/local/bin/codeintel-indexer-rs"]

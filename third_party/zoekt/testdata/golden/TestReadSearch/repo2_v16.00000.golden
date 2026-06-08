@@ -1,0 +1,68 @@
+{
+  "FormatVersion": 16,
+  "FeatureVersion": 12,
+  "FileMatches": [
+    [
+      {
+        "FileName": "main.go",
+        "Repository": "repo2",
+        "Language": "Go",
+        "LineMatches": [
+          {
+            "Line": "ZnVuYyBtYWluKCkgewo=",
+            "LineStart": 33,
+            "LineEnd": 47,
+            "LineNumber": 7,
+            "Before": null,
+            "After": null,
+            "FileName": false,
+            "Score": 6801,
+            "DebugScore": "",
+            "LineFragments": [
+              {
+                "LineOffset": 0,
+                "Offset": 33,
+                "MatchLength": 9,
+                "SymbolInfo": null
+              }
+            ]
+          }
+        ],
+        "Checksum": "Ju1TnQKZ6mE=",
+        "Score": 68000000010
+      }
+    ],
+    [
+      {
+        "FileName": "main.go",
+        "Repository": "repo2",
+        "Language": "Go",
+        "LineMatches": [
+          {
+            "Line": "cGFja2FnZSBtYWluCg==",
+            "LineStart": 0,
+            "LineEnd": 13,
+            "LineNumber": 1,
+            "Before": null,
+            "After": null,
+            "FileName": false,
+            "Score": 501,
+            "DebugScore": "",
+            "LineFragments": [
+              {
+                "LineOffset": 0,
+                "Offset": 0,
+                "MatchLength": 7,
+                "SymbolInfo": null
+              }
+            ]
+          }
+        ],
+        "Checksum": "Ju1TnQKZ6mE=",
+        "Score": 5000000010
+      }
+    ],
+    null,
+    null
+  ]
+}

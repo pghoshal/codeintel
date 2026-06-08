@@ -1,0 +1,224 @@
+# Codeintel local dev stack — full infrastructure (Phase A.1 of
+# the re-prioritized port plan, see
+# docs/codeintel-port-gap-inventory.md §7).
+#
+# Services (all bound to 127.0.0.1 to avoid conflict with whatever
+# the host already runs):
+#
+#   - codeintel-postgres  on  127.0.0.1:5433   (different from the
+#                                                legacy compose's
+#                                                5432 so both can
+#                                                coexist during
+#                                                migration)
+#   - codeintel-redis     on  127.0.0.1:6380   (different from 6379)
+#   - codeintel-nebula-*  on  127.0.0.1:9559/9669/9779 + 19xxx
+#                                               (standard Nebula
+#                                                ports; no legacy
+#                                                conflict)
+#
+# Use the Makefile in this directory for the supported lifecycle
+# commands:
+#
+#   make stack-up           — bring up + wait for all healthy
+#   make stack-down         — graceful shutdown, keep data volumes
+#   make stack-down-volumes — full wipe (data lost; use with care)
+#   make stack-healthcheck  — non-zero exit if any service isn't
+#                             responding to a real client probe
+#                             (pg_isready / redis PING / nebula
+#                             SHOW HOSTS). This is the Phase A.1
+#                             E2E gate.
+#
+# Bring up + smoke-test the Nebula track only (legacy slice 39):
+#
+#   make stack-up
+#   CODEINTEL_NEBULA_ADDR=127.0.0.1:9669 \
+#     go test ./internal/nebulasmoke/... -run Smoke -v
+#
+# The Go smoke tests self-skip when CODEINTEL_NEBULA_ADDR is unset
+# so the default `go test ./...` invocation stays green in CI
+# without Docker.
+
+services:
+  # Postgres backs every codeintel binary that touches durable
+  # state: codeintel-app (the read path on /api/repos, /api/status,
+  # /api/connections, etc.) and codeintel-backend (the audit
+  # AuditEvent table, the future queue-worker status tables).
+  # Port 5433 instead of 5432 so the legacy docker-compose-dev.yml
+  # (which uses 5432) can run alongside without conflict during
+  # the migration.
+  codeintel-postgres:
+    image: postgres:16-alpine
+    container_name: codeintel-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: codeintel
+      POSTGRES_PASSWORD: codeintel
+      POSTGRES_DB: codeintel
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - codeintel-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codeintel -d codeintel"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Redis hosts the asynq queue backend (BullMQ → asynq decision
+  # recorded in docs/codeintel-port-gap-inventory.md §3.1). Port
+  # 6380 instead of 6379 so the legacy compose's Redis can coexist
+  # during the migration. AOF persistence is on so a stack restart
+  # keeps in-flight queue state.
+  codeintel-redis:
+    image: redis:7-alpine
+    container_name: codeintel-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - codeintel-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # NebulaGraph 3.x single-node topology: one metad (cluster
+  # metadata), one storaged (storage engine), one graphd (query
+  # entrypoint). For local dev, single-node is sufficient — the
+  # production deploy uses the Helm chart's HA topology.
+  nebula-metad:
+    image: vesoft/nebula-metad:v3.8.0
+    container_name: codeintel-nebula-metad
+    environment:
+      USER: root
+      TZ: UTC
+    command:
+      - --meta_server_addrs=codeintel-nebula-metad:9559
+      - --local_ip=codeintel-nebula-metad
+      - --ws_ip=0.0.0.0
+      - --port=9559
+      - --data_path=/data/meta
+      - --log_dir=/logs
+      - --v=0
+      - --minloglevel=0
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:19559/status"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "127.0.0.1:9559:9559"
+      - "127.0.0.1:19559:19559"
+    volumes:
+      - codeintel-nebula-metad-data:/data/meta
+      - codeintel-nebula-metad-logs:/logs
+    restart: on-failure
+
+  # Storaged has a chicken-and-egg dependency on metad: its HTTP
+  # /status endpoint only becomes reachable after the host is
+  # registered with metad via `ADD HOSTS`. The nebula-console-init
+  # service (below) performs that registration on first bring-up.
+  # We use `depends_on: condition: service_started` (not
+  # service_healthy) on the storaged dependency for that reason —
+  # storaged can't reach `healthy` until console-init has run, but
+  # console-init needs storaged to be already listening so the
+  # `ADD HOSTS` resolves to a running peer.
+  nebula-storaged:
+    image: vesoft/nebula-storaged:v3.8.0
+    container_name: codeintel-nebula-storaged
+    environment:
+      USER: root
+      TZ: UTC
+    command:
+      - --meta_server_addrs=codeintel-nebula-metad:9559
+      - --local_ip=codeintel-nebula-storaged
+      - --ws_ip=0.0.0.0
+      - --port=9779
+      - --data_path=/data/storage
+      - --log_dir=/logs
+      - --v=0
+      - --minloglevel=0
+    depends_on:
+      nebula-metad:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:9779:9779"
+      - "127.0.0.1:19779:19779"
+    volumes:
+      - codeintel-nebula-storaged-data:/data/storage
+      - codeintel-nebula-storaged-logs:/logs
+    restart: on-failure
+
+  nebula-graphd:
+    image: vesoft/nebula-graphd:v3.8.0
+    container_name: codeintel-nebula-graphd
+    environment:
+      USER: root
+      TZ: UTC
+    command:
+      - --meta_server_addrs=codeintel-nebula-metad:9559
+      - --port=9669
+      - --local_ip=codeintel-nebula-graphd
+      - --ws_ip=0.0.0.0
+      - --log_dir=/logs
+      - --v=0
+      - --minloglevel=0
+    depends_on:
+      nebula-metad:
+        condition: service_healthy
+      nebula-storaged:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:19669/status"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "127.0.0.1:9669:9669"
+      - "127.0.0.1:19669:19669"
+    volumes:
+      - codeintel-nebula-graphd-logs:/logs
+    restart: on-failure
+
+  # One-shot init: registers the storaged host with metad via the
+  # `ADD HOSTS` nGQL statement. Nebula 3.x requires explicit host
+  # registration before storaged can heartbeat successfully (the
+  # `Machine not existed!` log message is the diagnostic). The
+  # nebula-console image is the canonical client for this step.
+  #
+  # Service exits 0 on success so its containers don't restart;
+  # idempotency is provided by Nebula itself (ADD HOSTS on an
+  # already-registered host is a no-op error that the script
+  # tolerates).
+  nebula-console-init:
+    image: vesoft/nebula-console:v3.8.0
+    container_name: codeintel-nebula-console-init
+    depends_on:
+      nebula-graphd:
+        condition: service_healthy
+    restart: "no"
+    entrypoint:
+      - sh
+      - -c
+      - |
+        for i in $$(seq 1 30); do
+          if /usr/local/bin/nebula-console -addr codeintel-nebula-graphd -port 9669 -u root -p nebula -e 'ADD HOSTS "codeintel-nebula-storaged":9779' 2>&1; then
+            echo "ADD HOSTS succeeded on attempt $$i"
+            exit 0
+          fi
+          echo "ADD HOSTS attempt $$i failed; retrying in 2s"
+          sleep 2
+        done
+        echo "ADD HOSTS failed after 30 attempts"
+        exit 1
+
+volumes:
+  codeintel-postgres-data:
+  codeintel-redis-data:
+  codeintel-nebula-metad-data:
+  codeintel-nebula-metad-logs:
+  codeintel-nebula-storaged-data:
+  codeintel-nebula-storaged-logs:
+  codeintel-nebula-graphd-logs:

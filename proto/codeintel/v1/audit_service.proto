@@ -1,0 +1,63 @@
+// AuditService is the wire contract codeintel-app uses to forward
+// audit events to codeintel-backend for durable persistence.
+//
+// App fires events from the request path (e.g. POST /api/connections
+// success → connection.created event). Backend persists each event
+// into the Postgres audit table (later) and / or forwards to a
+// SIEM. The contract is one-way: app does not wait for backend's
+// persistence to ack before returning the HTTP response.
+syntax = "proto3";
+
+package codeintel.v1;
+
+option go_package = "codeintel/proto/codeintel/v1;codeintelv1";
+
+import "google/protobuf/timestamp.proto";
+
+// ActorType discriminates the subject performing an audited action.
+enum ActorType {
+  ACTOR_TYPE_UNSPECIFIED = 0;
+  ACTOR_TYPE_USER = 1;
+  ACTOR_TYPE_API_KEY = 2;
+  ACTOR_TYPE_SYSTEM = 3;
+}
+
+// TargetType discriminates the subject being acted upon.
+enum TargetType {
+  TARGET_TYPE_UNSPECIFIED = 0;
+  TARGET_TYPE_ORG = 1;
+  TARGET_TYPE_CONNECTION = 2;
+  TARGET_TYPE_SECRET = 3;
+  TARGET_TYPE_MODEL = 4;
+}
+
+// Event is the structured payload an Emitter sends. Field order
+// here pins the proto wire layout; the Go-side audit.Event mirrors
+// this shape.
+message Event {
+  string action = 1;
+  string actor_id = 2;
+  ActorType actor_type = 3;
+  string target_id = 4;
+  TargetType target_type = 5;
+  int32 org_id = 6;
+  string request_id = 7;
+  google.protobuf.Timestamp time = 8;
+  // Metadata is a free-form key→value map for event-specific
+  // context. Values are JSON-encoded strings so the wire format
+  // stays language-agnostic.
+  map<string, string> metadata = 9;
+}
+
+message EmitRequest {
+  Event event = 1;
+}
+
+message EmitResponse {}
+
+service AuditService {
+  // Emit forwards a single audit event to backend for durable
+  // persistence. Backend MUST acknowledge before any persistence
+  // commitment so the app's request-path latency stays bounded.
+  rpc Emit(EmitRequest) returns (EmitResponse) {}
+}

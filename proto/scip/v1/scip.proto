@@ -1,0 +1,193 @@
+syntax = "proto3";
+
+package codeintel.scip.v1;
+
+option go_package = "codeintel/proto/scip/v1;scippb";
+
+message Index {
+  repeated Document documents = 2;
+  repeated SymbolInformation external_symbols = 3;
+}
+
+message Document {
+  string relative_path = 1;
+  repeated Occurrence occurrences = 2;
+  repeated SymbolInformation symbols = 3;
+  string language = 4;
+  string text = 5;
+  PositionEncoding position_encoding = 6;
+}
+
+message Occurrence {
+  repeated int32 range = 1;
+  string symbol = 2;
+  int32 symbol_roles = 3;
+  repeated string override_documentation = 4;
+  SyntaxKind syntax_kind = 5;
+  repeated int32 enclosing_range = 7;
+}
+
+message SymbolInformation {
+  string symbol = 1;
+  repeated string documentation = 3;
+  repeated Relationship relationships = 4;
+  Kind kind = 5;
+  string display_name = 6;
+  Document signature_documentation = 7;
+  string enclosing_symbol = 8;
+
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    ARRAY = 1;
+    ASSERTION = 2;
+    ASSOCIATED_TYPE = 3;
+    ATTRIBUTE = 4;
+    AXIOM = 5;
+    BOOLEAN = 6;
+    CLASS = 7;
+    CONSTANT = 8;
+    CONSTRUCTOR = 9;
+    DATA_FAMILY = 10;
+    ENUM = 11;
+    ENUM_MEMBER = 12;
+    EVENT = 13;
+    FACT = 14;
+    FIELD = 15;
+    FILE = 16;
+    FUNCTION = 17;
+    GETTER = 18;
+    GRAMMAR = 19;
+    INSTANCE = 20;
+    INTERFACE = 21;
+    KEY = 22;
+    LANG = 23;
+    LEMMA = 24;
+    MACRO = 25;
+    METHOD = 26;
+    METHOD_RECEIVER = 27;
+    MESSAGE = 28;
+    MODULE = 29;
+    NAMESPACE = 30;
+    NULL_KIND = 31;
+    NUMBER = 32;
+    OBJECT = 33;
+    OPERATOR = 34;
+    PACKAGE = 35;
+    PACKAGE_OBJECT = 36;
+    PARAMETER = 37;
+    PARAMETER_LABEL = 38;
+    PATTERN = 39;
+    PREDICATE = 40;
+    PROPERTY = 41;
+    PROTOCOL = 42;
+    QUASIQUOTER = 43;
+    SELF_PARAMETER = 44;
+    SETTER = 45;
+    SIGNATURE = 46;
+    SUBSCRIPT = 47;
+    STRING = 48;
+    STRUCT = 49;
+    TACTIC = 50;
+    THEOREM = 51;
+    THIS_PARAMETER = 52;
+    TRAIT = 53;
+    TYPE = 54;
+    TYPE_ALIAS = 55;
+    TYPE_CLASS = 56;
+    TYPE_FAMILY = 57;
+    TYPE_PARAMETER = 58;
+    UNION = 59;
+    VALUE = 60;
+    VARIABLE = 61;
+    CONTRACT = 62;
+    ERROR = 63;
+    LIBRARY = 64;
+    MODIFIER = 65;
+    ABSTRACT_METHOD = 66;
+    METHOD_SPECIFICATION = 67;
+    PROTOCOL_METHOD = 68;
+    PURE_VIRTUAL_METHOD = 69;
+    TRAIT_METHOD = 70;
+    TYPE_CLASS_METHOD = 71;
+    ACCESSOR = 72;
+    DELEGATE = 73;
+    METHOD_ALIAS = 74;
+    SINGLETON_CLASS = 75;
+    SINGLETON_METHOD = 76;
+    STATIC_DATA_MEMBER = 77;
+    STATIC_EVENT = 78;
+    STATIC_FIELD = 79;
+    STATIC_METHOD = 80;
+    STATIC_PROPERTY = 81;
+    STATIC_VARIABLE = 82;
+    EXTENSION = 84;
+    MIXIN = 85;
+    CONCEPT = 86;
+  }
+}
+
+message Relationship {
+  string symbol = 1;
+  bool is_reference = 2;
+  bool is_implementation = 3;
+  bool is_type_definition = 4;
+  bool is_definition = 5;
+}
+
+enum PositionEncoding {
+  POSITION_ENCODING_UNSPECIFIED = 0;
+  UTF8_CODE_UNIT_OFFSET_FROM_LINE_START = 1;
+  UTF16_CODE_UNIT_OFFSET_FROM_LINE_START = 2;
+  UTF32_CODE_UNIT_OFFSET_FROM_LINE_START = 3;
+}
+
+enum SymbolRole {
+  SYMBOL_ROLE_UNSPECIFIED = 0;
+  DEFINITION = 1;
+  IMPORT = 2;
+  WRITE_ACCESS = 4;
+  READ_ACCESS = 8;
+  GENERATED = 16;
+  TEST = 32;
+  FORWARD_DEFINITION = 64;
+}
+
+enum SyntaxKind {
+  SYNTAX_KIND_UNSPECIFIED = 0;
+  COMMENT = 1;
+  PUNCTUATION_DELIMITER = 2;
+  PUNCTUATION_BRACKET = 3;
+  KEYWORD = 4;
+  IDENTIFIER_OPERATOR = 5;
+  IDENTIFIER = 6;
+  IDENTIFIER_BUILTIN = 7;
+  IDENTIFIER_NULL = 8;
+  IDENTIFIER_CONSTANT = 9;
+  IDENTIFIER_MUTABLE_GLOBAL = 10;
+  IDENTIFIER_PARAMETER = 11;
+  IDENTIFIER_LOCAL = 12;
+  IDENTIFIER_SHADOWED = 13;
+  IDENTIFIER_NAMESPACE = 14;
+  IDENTIFIER_FUNCTION = 15;
+  IDENTIFIER_FUNCTION_DEFINITION = 16;
+  IDENTIFIER_MACRO = 17;
+  IDENTIFIER_MACRO_DEFINITION = 18;
+  IDENTIFIER_TYPE = 19;
+  IDENTIFIER_BUILTIN_TYPE = 20;
+  IDENTIFIER_ATTRIBUTE = 21;
+  REGEX_ESCAPE = 22;
+  REGEX_REPEATED = 23;
+  REGEX_WILDCARD = 24;
+  REGEX_DELIMITER = 25;
+  REGEX_JOIN = 26;
+  STRING_LITERAL = 27;
+  STRING_LITERAL_ESCAPE = 28;
+  STRING_LITERAL_SPECIAL = 29;
+  STRING_LITERAL_KEY = 30;
+  CHARACTER_LITERAL = 31;
+  NUMERIC_LITERAL = 32;
+  BOOLEAN_LITERAL = 33;
+  TAG = 34;
+  TAG_ATTRIBUTE = 35;
+  TAG_DELIMITER = 36;
+}

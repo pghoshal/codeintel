@@ -1,0 +1,22 @@
+# Compiled binaries — never commit
+bin/
+.dist/
+**/bin/codeintel-*
+*.exe
+*.test
+*.out
+
+# Go workspace lockfiles for dev-only tools
+vendor/
+
+# IDE
+.idea/
+.vscode/
+
+# Rust workspace
+indexer-rs/target/
+**/Cargo.lock
+
+# Local secrets
+.env.local
+.env.*.local

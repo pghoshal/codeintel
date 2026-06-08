@@ -1,0 +1,136 @@
+{
+  "FormatVersion": 16,
+  "FeatureVersion": 9,
+  "FileMatches": [
+    [
+      {
+        "FileName": "main.go",
+        "Repository": "repo",
+        "Language": "go",
+        "LineMatches": [
+          {
+            "Line": "ZnVuYyBtYWluKCkgewo=",
+            "LineStart": 69,
+            "LineEnd": 83,
+            "LineNumber": 10,
+            "Before": null,
+            "After": null,
+            "FileName": false,
+            "Score": 6801,
+            "DebugScore": "",
+            "LineFragments": [
+              {
+                "LineOffset": 0,
+                "Offset": 69,
+                "MatchLength": 9,
+                "SymbolInfo": null
+              }
+            ]
+          }
+        ],
+        "Checksum": "n9fUYqacPXg=",
+        "Score": 68000000010
+      }
+    ],
+    [
+      {
+        "FileName": "main.go",
+        "Repository": "repo",
+        "Language": "go",
+        "LineMatches": [
+          {
+            "Line": "cGFja2FnZSBtYWluCg==",
+            "LineStart": 0,
+            "LineEnd": 13,
+            "LineNumber": 1,
+            "Before": null,
+            "After": null,
+            "FileName": false,
+            "Score": 501,
+            "DebugScore": "",
+            "LineFragments": [
+              {
+                "LineOffset": 0,
+                "Offset": 0,
+                "MatchLength": 7,
+                "SymbolInfo": null
+              }
+            ]
+          }
+        ],
+        "Checksum": "n9fUYqacPXg=",
+        "Score": 5000000010
+      }
+    ],
+    [
+      {
+        "FileName": "main.go",
+        "Repository": "repo",
+        "Language": "go",
+        "LineMatches": [
+          {
+            "Line": "CW51bSAgICAgPSA1Cg==",
+            "LineStart": 34,
+            "LineEnd": 47,
+            "LineNumber": 6,
+            "Before": null,
+            "After": null,
+            "FileName": false,
+            "Score": 8001,
+            "DebugScore": "",
+            "LineFragments": [
+              {
+                "LineOffset": 1,
+                "Offset": 35,
+                "MatchLength": 3,
+                "SymbolInfo": {
+                  "Sym": "num",
+                  "Kind": "var",
+                  "Parent": "main",
+                  "ParentKind": "package"
+                }
+              }
+            ]
+          }
+        ],
+        "Checksum": "n9fUYqacPXg=",
+        "Score": 80000000010
+      }
+    ],
+    [
+      {
+        "FileName": "main.go",
+        "Repository": "repo",
+        "Language": "go",
+        "LineMatches": [
+          {
+            "Line": "CW1lc3NhZ2UgPSAiaGVsbG8iCg==",
+            "LineStart": 47,
+            "LineEnd": 66,
+            "LineNumber": 7,
+            "Before": null,
+            "After": null,
+            "FileName": false,
+            "Score": 6051,
+            "DebugScore": "",
+            "LineFragments": [
+              {
+                "LineOffset": 4,
+                "Offset": 51,
+                "MatchLength": 4,
+                "SymbolInfo": {
+                  "Sym": "message",
+                  "Kind": "var",
+                  "Parent": "main",
+                  "ParentKind": "package"
+                }
+              }
+            ]
+          }
+        ],
+        "Checksum": "n9fUYqacPXg=",
+        "Score": 60500000010
+      }
+    ]
+  ]
+}

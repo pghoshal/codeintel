@@ -1,0 +1,45 @@
+// IndexPlanService is the typed Rust-indexer-to-Go-backend
+// handoff for durable index subjob planning.
+syntax = "proto3";
+
+package codeintel.v1;
+
+option go_package = "codeintel/proto/codeintel/v1;codeintelv1";
+
+message SCIPProjectPlan {
+  string language = 1;
+  string project_root = 2;
+  string indexer = 3;
+  string scip_worker_class = 4;
+  optional string toolchain_digest = 5;
+  optional string image_digest = 6;
+  optional string project_input_hash = 7;
+}
+
+message IndexPlanRevision {
+  string workspace_id = 1;
+  string branch = 2;
+  string revision = 3;
+  string commit_hash = 4;
+  bool run_ast_tree_sitter = 5;
+  bool run_graph_merge = 6;
+  bool run_activate = 7;
+  repeated SCIPProjectPlan scip_projects = 8;
+}
+
+message WriteIndexPlanRequest {
+  string index_job_id = 1;
+  int32 org_id = 2;
+  int32 repo_id = 3;
+  int32 max_attempts = 4;
+  repeated IndexPlanRevision revisions = 5;
+}
+
+message WriteIndexPlanResponse {
+  int32 revision_count = 1;
+  int32 subjob_count = 2;
+}
+
+service IndexPlanService {
+  rpc WritePlan(WriteIndexPlanRequest) returns (WriteIndexPlanResponse) {}
+}

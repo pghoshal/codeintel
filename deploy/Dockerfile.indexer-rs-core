@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1
+
+FROM rust:1.92-alpine AS rustbuilder
+RUN apk add --no-cache build-base ca-certificates cmake git openssl-dev openssl-libs-static pkgconf
+
+WORKDIR /src/codeintel/indexer-rs
+COPY indexer-rs/Cargo.toml indexer-rs/Cargo.lock ./
+COPY indexer-rs/build.rs ./build.rs
+COPY indexer-rs/src ./src
+COPY proto ../proto
+RUN cargo build --release --locked --bin codeintel-indexer-rs
+
+FROM golang:1.23-bookworm AS zoektbuilder
+WORKDIR /src/third_party/zoekt
+COPY third_party/zoekt ./
+RUN CGO_ENABLED=0 go build -o /out/zoekt-git-index ./cmd/zoekt-git-index
+
+FROM alpine:3.20
+USER root
+
+ENV CODEINTEL_SCIP_WORKER_CLASSES=none
+ENV PATH="/usr/local/bin:${PATH}"
+
+RUN apk add --no-cache bash ca-certificates curl git jansson jq openssh-client openssl perl util-linux
+
+COPY third_party/zoekt/install-ctags-alpine.sh .
+RUN ./install-ctags-alpine.sh && rm install-ctags-alpine.sh
+
+COPY --from=rustbuilder /src/codeintel/indexer-rs/target/release/codeintel-indexer-rs /usr/local/bin/codeintel-indexer-rs
+COPY --from=zoektbuilder /out/zoekt-git-index /usr/local/bin/zoekt-git-index
+
+ENTRYPOINT ["/usr/local/bin/codeintel-indexer-rs"]

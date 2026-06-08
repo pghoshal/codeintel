@@ -1,0 +1,38 @@
+// IndexExecutorService is the backend-to-indexer execution contract for
+// one durable indexing subjob. Backend owns queue claim, heartbeat,
+// artifact validation, and persistence; the indexer owns CPU-heavy
+// extraction for the assigned layer.
+syntax = "proto3";
+
+package codeintel.v1;
+
+option go_package = "codeintel/proto/codeintel/v1;codeintelv1";
+
+message ExecuteIndexSubjobRequest {
+  string subjob_id = 1;
+  string repo_indexing_job_id = 2;
+  int32 org_id = 3;
+  string workspace_id = 4;
+  int32 repo_id = 5;
+  string branch = 6;
+  string revision = 7;
+  string commit_hash = 8;
+  string layer = 9;
+  optional string language = 10;
+  optional string project_root = 11;
+  optional string indexer = 12;
+  string worker_class = 13;
+  string queue_name = 14;
+  int32 attempt = 15;
+}
+
+message ExecuteIndexSubjobResponse {
+  string artifact_temp_path = 1;
+  string artifact_path = 2;
+  string artifact_sha256 = 3;
+  map<string, string> metadata = 4;
+}
+
+service IndexExecutorService {
+  rpc ExecuteSubjob(ExecuteIndexSubjobRequest) returns (ExecuteIndexSubjobResponse) {}
+}

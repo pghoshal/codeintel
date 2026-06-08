@@ -1,0 +1,89 @@
+version: 1
+mode: strict-by-default
+
+comparison:
+  status: exact
+  content_type: application-json-prefix
+  body: exact
+  ordering: stable-json
+
+dynamic_fields:
+  - $.createdAt
+  - $.updatedAt
+  - $.syncedAt
+  - $.indexedAt
+  - $.completedAt
+  - $.jobId
+  - $.id
+
+required_flow:
+  - id: health
+    method: GET
+    path: /api/health
+    auth: none
+    mutates: false
+  - id: version
+    method: GET
+    path: /api/version
+    auth: none
+    mutates: false
+  - id: list_secrets
+    method: GET
+    path: /api/secrets
+    auth: owner-api-key
+    mutates: false
+  - id: put_secret
+    method: PUT
+    path: /api/secrets
+    auth: owner-api-key
+    mutates: true
+  - id: put_models
+    method: PUT
+    path: /api/models
+    auth: owner-api-key
+    mutates: true
+  - id: list_models
+    method: GET
+    path: /api/models
+    auth: owner-api-key
+    mutates: false
+  - id: post_connection
+    method: POST
+    path: /api/connections
+    auth: owner-api-key
+    mutates: true
+  - id: list_connections
+    method: GET
+    path: /api/connections
+    auth: owner-api-key
+    mutates: false
+  - id: put_connection_branches
+    method: PUT
+    path: /api/connections/{id}/branches
+    auth: owner-api-key
+    mutates: true
+  - id: sync_connection
+    method: POST
+    path: /api/connections/{id}/sync
+    auth: owner-api-key
+    mutates: true
+  - id: list_repos
+    method: GET
+    path: /api/repos
+    auth: owner-api-key
+    mutates: false
+  - id: post_repo_index
+    method: POST
+    path: /api/repos/{id}/index
+    auth: owner-api-key
+    mutates: true
+  - id: delete_repo_index
+    method: DELETE
+    path: /api/repos/{id}/index
+    auth: owner-api-key
+    mutates: true
+  - id: status
+    method: GET
+    path: /api/status
+    auth: owner-api-key
+    mutates: false

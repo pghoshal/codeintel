@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "scenario": "opentelemetry-cross-repo-polyglot",
+  "minimumRepoCount": 10,
+  "layers": [
+    "zoekt",
+    "scip",
+    "ast",
+    "tree-sitter",
+    "graph",
+    "mcp"
+  ],
+  "latencyBudgets": {
+    "searchP50Ms": 120,
+    "searchP99Ms": 480,
+    "symbolP50Ms": 150,
+    "symbolP99Ms": 600,
+    "graphInspectP50Ms": 250,
+    "graphInspectP99Ms": 1000,
+    "askCodebaseP50Ms": 9000,
+    "askCodebaseP99Ms": 36000
+  },
+  "qualityThresholds": {
+    "requiredEvidenceRecall": 0.9,
+    "falsePositiveRateMax": 0.08,
+    "tenantLeakageMax": 0,
+    "graphValueDeltaMin": 0.2,
+    "answerCompletenessMin": 0.9,
+    "sourceCitationCoverageMin": 0.95
+  },
+  "repositories": [
+    {
+      "name": "opentelemetry-demo",
+      "url": "https://github.com/open-telemetry/opentelemetry-demo.git",
+      "defaultBranch": "main",
+      "languages": ["typescript", "python", "java", "dotnet", "go", "javascript"],
+      "anchors": ["otlp", "collector", "trace", "metric", "service"]
+    },
+    {
+      "name": "opentelemetry-collector",
+      "url": "https://github.com/open-telemetry/opentelemetry-collector.git",
+      "defaultBranch": "main",
+      "languages": ["go"],
+      "anchors": ["otlp", "receiver", "processor", "exporter", "pipeline"]
+    },
+    {
+      "name": "opentelemetry-collector-contrib",
+      "url": "https://github.com/open-telemetry/opentelemetry-collector-contrib.git",
+      "defaultBranch": "main",
+      "languages": ["go"],
+      "anchors": ["otlp", "receiver", "processor", "exporter", "pipeline"]
+    },
+    {
+      "name": "opentelemetry-operator",
+      "url": "https://github.com/open-telemetry/opentelemetry-operator.git",
+      "defaultBranch": "main",
+      "languages": ["go", "yaml"],
+      "anchors": ["collector", "kubernetes", "deployment", "autoinstrumentation"]
+    },
+    {
+      "name": "opentelemetry-js",
+      "url": "https://github.com/open-telemetry/opentelemetry-js.git",
+      "defaultBranch": "main",
+      "languages": ["typescript", "javascript"],
+      "anchors": ["otlp", "trace", "metric", "sdk", "instrumentation"]
+    },
+    {
+      "name": "opentelemetry-python",
+      "url": "https://github.com/open-telemetry/opentelemetry-python.git",
+      "defaultBranch": "main",
+      "languages": ["python"],
+      "anchors": ["otlp", "trace", "metric", "sdk", "instrumentation"]
+    },
+    {
+      "name": "opentelemetry-java",
+      "url": "https://github.com/open-telemetry/opentelemetry-java.git",
+      "defaultBranch": "main",
+      "languages": ["java"],
+      "anchors": ["otlp", "trace", "metric", "sdk", "instrumentation"]
+    },
+    {
+      "name": "opentelemetry-dotnet",
+      "url": "https://github.com/open-telemetry/opentelemetry-dotnet.git",
+      "defaultBranch": "main",
+      "languages": ["dotnet"],
+      "anchors": ["otlp", "trace", "metric", "sdk", "instrumentation"]
+    },
+    {
+      "name": "opentelemetry-go",
+      "url": "https://github.com/open-telemetry/opentelemetry-go.git",
+      "defaultBranch": "main",
+      "languages": ["go"],
+      "anchors": ["otlp", "trace", "metric", "sdk", "instrumentation"]
+    },
+    {
+      "name": "opentelemetry-rust",
+      "url": "https://github.com/open-telemetry/opentelemetry-rust.git",
+      "defaultBranch": "main",
+      "languages": ["rust"],
+      "anchors": ["otlp", "trace", "metric", "sdk", "instrumentation"]
+    }
+  ],
+  "referenceProjects": [
+    {
+      "name": "Jakedismo/codegraph-rust",
+      "requiredIdeas": ["tiered-indexing", "lsp-enrichment", "impact-tools", "context-budgeting"]
+    },
+    {
+      "name": "safishamsi/graphify",
+      "requiredIdeas": ["governed-llm-extraction", "confidence-tiers", "hyperedges", "chunked-extraction"]
+    },
+    {
+      "name": "colbymchenry/codegraph",
+      "requiredIdeas": ["framework-routes", "hybrid-lookup", "mcp-tools", "output-budgeting"]
+    },
+    {
+      "name": "FalkorDB/code-graph",
+      "requiredIdeas": ["graph-native-query", "graph-chat", "relation-specific-paths"]
+    },
+    {
+      "name": "getzep/graphiti",
+      "requiredIdeas": ["temporal-validity", "episodes", "fact-provenance", "hybrid-retrieval"]
+    },
+    {
+      "name": "tirth8205/code-review-graph",
+      "requiredIdeas": ["risk-scoring", "blast-radius", "graph-diff", "test-coverage-links"]
+    }
+  ],
+  "queries": [
+    {
+      "id": "q1-otlp-trace-flow",
+      "question": "Explain how a trace emitted from an instrumented service reaches the collector and is exported, across all indexed repositories.",
+      "requiredLayers": ["zoekt", "scip", "ast", "tree-sitter", "graph", "mcp"],
+      "requiredAnswerSections": ["architecture-summary", "cross-repo-flow", "files-and-symbols", "exact-files", "diagram", "tests-and-config", "confidence"]
+    },
+    {
+      "id": "q2-exporter-impact",
+      "question": "What breaks if the OTLP exporter payload handling changes?",
+      "requiredLayers": ["zoekt", "scip", "graph", "mcp"],
+      "requiredAnswerSections": ["blast-radius", "callers", "callees", "affected-repos", "tests", "exact-files"]
+    },
+    {
+      "id": "q3-same-symbol-disambiguation",
+      "question": "Find same-name exporter or tracer symbols across languages and distinguish definitions from docs and examples.",
+      "requiredLayers": ["zoekt", "scip", "ast", "mcp"],
+      "requiredAnswerSections": ["symbol-table", "definition-vs-reference", "false-positive-notes", "exact-files"]
+    },
+    {
+      "id": "q4-operator-to-collector",
+      "question": "Show how Kubernetes operator configuration maps to collector runtime behavior.",
+      "requiredLayers": ["zoekt", "ast", "tree-sitter", "graph", "mcp"],
+      "requiredAnswerSections": ["config-flow", "manifest-anchors", "runtime-path", "diagram", "exact-files"]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# syntax=docker/dockerfile:1
+
+FROM alpine:3.20
+
+ARG BINARY
+RUN apk add --no-cache ca-certificates git openssh-client tzdata
+
+COPY ${BINARY} /usr/local/bin/codeintel
+
+RUN chmod +x /usr/local/bin/codeintel && git config --global safe.directory "*"
+
+ENTRYPOINT ["/usr/local/bin/codeintel"]
