@@ -415,13 +415,16 @@ example `3`.
 
 ## Marketing Assets
 
-Repository-ready SVG assets live under `assets/`:
+Repository-ready assets live under `assets/`. Use the PNG for GitHub's
+repository social preview upload because GitHub only accepts PNG, GIF,
+or JPG images for that setting.
 
 | Asset | Use |
 | --- | --- |
 | `assets/codeintel-logo.svg` | Square logo/avatar |
 | `assets/codeintel-label.svg` | README/repository label or compact wordmark |
-| `assets/codeintel-social-preview.svg` | GitHub social preview / marketing card |
+| `assets/codeintel-social-preview.svg` | Editable vector source for the social preview |
+| `assets/codeintel-social-preview.png` | GitHub social preview upload image, `1280x640` |
 
 Preview:
 
