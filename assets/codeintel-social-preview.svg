@@ -1,0 +1,47 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Codeintel social preview</title>
+  <desc id="desc">Marketing image showing Codeintel as a multi-repo code intelligence engine for coding agents.</desc>
+  <rect width="1200" height="630" rx="0" fill="#0B1020"/>
+  <rect x="70" y="62" width="1060" height="506" rx="42" fill="#10182C" stroke="#26324A" stroke-width="2"/>
+  <g transform="translate(100 96) scale(0.25)">
+    <rect width="512" height="512" rx="112" fill="#121B31"/>
+    <path d="M112 326L198 186L312 326L400 186" stroke="#4DD7FF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M120 354H392" stroke="#8BE36B" stroke-width="26" stroke-linecap="round"/>
+    <circle cx="112" cy="326" r="34" fill="#101B35" stroke="#4DD7FF" stroke-width="18"/>
+    <circle cx="198" cy="186" r="34" fill="#101B35" stroke="#8BE36B" stroke-width="18"/>
+    <circle cx="312" cy="326" r="34" fill="#101B35" stroke="#FFB454" stroke-width="18"/>
+    <circle cx="400" cy="186" r="34" fill="#101B35" stroke="#FF6B8A" stroke-width="18"/>
+  </g>
+  <text x="258" y="150" fill="#F8FAFC" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="72" font-weight="850">Codeintel</text>
+  <text x="263" y="202" fill="#AAB7CF" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" font-weight="520">Self-hosted code intelligence for multi-repo coding agents</text>
+  <g transform="translate(106 270)">
+    <rect width="190" height="96" rx="18" fill="#0D1426" stroke="#33415F"/>
+    <text x="28" y="40" fill="#4DD7FF" font-family="Inter, ui-sans-serif, system-ui" font-size="22" font-weight="800">Zoekt</text>
+    <text x="28" y="70" fill="#BAC7DD" font-family="Inter, ui-sans-serif, system-ui" font-size="17">lexical recall</text>
+  </g>
+  <g transform="translate(330 270)">
+    <rect width="190" height="96" rx="18" fill="#0D1426" stroke="#33415F"/>
+    <text x="28" y="40" fill="#8BE36B" font-family="Inter, ui-sans-serif, system-ui" font-size="22" font-weight="800">SCIP</text>
+    <text x="28" y="70" fill="#BAC7DD" font-family="Inter, ui-sans-serif, system-ui" font-size="17">symbols + refs</text>
+  </g>
+  <g transform="translate(554 270)">
+    <rect width="190" height="96" rx="18" fill="#0D1426" stroke="#33415F"/>
+    <text x="28" y="40" fill="#FFB454" font-family="Inter, ui-sans-serif, system-ui" font-size="22" font-weight="800">AST</text>
+    <text x="28" y="70" fill="#BAC7DD" font-family="Inter, ui-sans-serif, system-ui" font-size="17">tree-sitter facts</text>
+  </g>
+  <g transform="translate(778 270)">
+    <rect width="220" height="96" rx="18" fill="#0D1426" stroke="#33415F"/>
+    <text x="28" y="40" fill="#FF6B8A" font-family="Inter, ui-sans-serif, system-ui" font-size="22" font-weight="800">Graph</text>
+    <text x="28" y="70" fill="#BAC7DD" font-family="Inter, ui-sans-serif, system-ui" font-size="17">architecture paths</text>
+  </g>
+  <path d="M296 318H330" stroke="#64748B" stroke-width="4" stroke-linecap="round"/>
+  <path d="M520 318H554" stroke="#64748B" stroke-width="4" stroke-linecap="round"/>
+  <path d="M744 318H778" stroke="#64748B" stroke-width="4" stroke-linecap="round"/>
+  <rect x="106" y="420" width="892" height="80" rx="22" fill="#111E37" stroke="#33415F"/>
+  <text x="138" y="452" fill="#F8FAFC" font-family="Inter, ui-sans-serif, system-ui" font-size="23" font-weight="760">MCP and chat answers with exact files, functions, diagrams, tests, and harness-ready file maps</text>
+  <text x="138" y="482" fill="#AAB7CF" font-family="Inter, ui-sans-serif, system-ui" font-size="18">Workspace isolated. Branch aware. Horizontally scalable.</text>
+  <path d="M1040 270C1080 298 1080 472 1040 500" stroke="#4DD7FF" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="1040" cy="270" r="13" fill="#4DD7FF"/>
+  <circle cx="1040" cy="386" r="13" fill="#8BE36B"/>
+  <circle cx="1040" cy="500" r="13" fill="#FF6B8A"/>
+</svg>
